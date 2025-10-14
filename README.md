@@ -4,7 +4,9 @@ Este repositório fornece um ambiente Docker Compose para provisionar um contain
 
 ## Pré-requisitos
 
-- Docker e Docker Compose.
+- [Docker](https://www.docker.com/get-started)
+- [Docker Compose](https://docs.docker.com/compose/)
+- [Git](https://git-scm.com/)
 - Rede Docker `network-share` já criada:
 
 ## Criar a rede externa se ainda não existir
@@ -72,22 +74,23 @@ docker cp /tmp/NOME_DO_BACKUP.sql ctr-mysql:/tmp/NOME_DO_BACKUP.sql
 
 ### Restaurar o backup dentro do container
 
-Acesse o container
+- Acesse o container
 
 ```bash
 docker exec -it ctr-mysql bash
 ```
 
-Verifique se o banco de dados existe
-
-
 ```bash
 mysql -u root -p
+```
 
+- Verifique se o banco de dados existe
+
+```bash
 SHOW DATABASES;
 ```
 
-Se não existir, crie o banco de dados
+- Se não existir, crie o banco de dados
 
 ```bash
 mysql -u root -p'SENHA_DO_ROOT'
@@ -95,7 +98,7 @@ mysql -u root -p'SENHA_DO_ROOT'
 CREATE DATABASE IF NOT EXISTS nome_do_banco;
 ```
 
-Restaure o backup
+- Restaure o backup
 
 ```bash
 mysql -u root -p'SENHA_DO_ROOT' nome_da_base_de_dados < /tmp/NOME_DO_BACKUP.sql
