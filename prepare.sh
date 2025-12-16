@@ -24,8 +24,12 @@ for DIR in "${DATA_DIRS[@]}"; do
 done
 
 echo "🔧 Ajustando permissões..."
-chmod -R 775 "$BASE_DIR/data/mysql"
-chmod +x "$BASE_DIR/stack/ctr-mysql/mysql-init/*.sh"
+chmod -R 775 $BASE_DIR/data/mysql
+chmod +x $BASE_DIR/stack/ctr-mysql/mysql-init/*.sh
+
+# ou, para algo ainda mais seguro
+find "$BASE_DIR/stack/ctr-mysql/mysql-init" -name '*.sh' -exec chmod +x {} +
+
 
 # Configurando rede Docker personalizada
 if ! docker network ls | grep -q "network-share"; then
