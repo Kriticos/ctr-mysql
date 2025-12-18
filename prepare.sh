@@ -6,11 +6,11 @@ echo "📁 Iniciando preparação das pastas do ambiente..."
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Dois níveis acima do script
-BASE_DIR="$(realpath "$SCRIPT_DIR/../..")"
+BASE_DIR="$(realpath "$SCRIPT_DIR/./.")"
 
 # Pastas de dados (volumes persistentes)
 DATA_DIRS=(
-  "$BASE_DIR/data/mysql"
+  "$BASE_DIR/databases"
 )
 
 # Criando diretórios
@@ -24,8 +24,8 @@ for DIR in "${DATA_DIRS[@]}"; do
 done
 
 echo "🔧 Ajustando permissões..."
-chmod -R 775 $BASE_DIR/data/mysql
-chmod +x $BASE_DIR/stack/ctr-mysql/mysql-init/*.sh
+chmod -R 775 $BASE_DIR/databases
+chmod +x $BASE_DIR/mysql-init/*.sh
 
 # ou, para algo ainda mais seguro
 find "$BASE_DIR/stack/ctr-mysql/mysql-init" -name '*.sh' -exec chmod +x {} +
