@@ -3,10 +3,7 @@
 echo "📁 Iniciando preparação das pastas do ambiente..."
 
 # Diretório onde o script está
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-
-# Dois níveis acima do script
-BASE_DIR="$(realpath "$SCRIPT_DIR/./.")"
+BASE_DIR="$(dirname "$(realpath "$0")")"
 
 # Pastas de dados (volumes persistentes)
 DATA_DIRS=(
@@ -28,7 +25,7 @@ chmod -R 775 $BASE_DIR/databases
 chmod +x $BASE_DIR/mysql-init/*.sh
 
 # ou, para algo ainda mais seguro
-find "$BASE_DIR/stack/ctr-mysql/mysql-init" -name '*.sh' -exec chmod +x {} +
+find "$BASE_DIR/mysql-init" -name '*.sh' -exec chmod +x {} +
 
 
 # Configurando rede Docker personalizada
