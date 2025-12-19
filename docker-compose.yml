@@ -19,6 +19,7 @@ services:
     volumes:
       - ${VOL_DATABASES_PATH}
       - ${VOL_MYSQL_INIT}
+      - ./my.cnf:/etc/mysql/conf.d/99-custom.cnf:ro
     networks:
       network-share:
         ipv4_address: ${IPV4_ADDRESS}  # IP fixo para o srv-mysql
