@@ -1,123 +1,140 @@
-# Projeto MySQL com Docker Compose
+# ctr-mysql - MySQL com Docker Compose
 
-Este repositório fornece um ambiente Docker Compose para provisionar um container MySQL com configuração personalizada via variáveis de ambiente.
+Ambiente padrao de MySQL 8.x com Docker Compose, configurado por variaveis de ambiente e scripts de inicializacao para criar bancos/usuarios de sistemas (GLPI, Zabbix, Grafana).
 
-## Pré-requisitos
+## Recursos
 
-- [Docker](https://www.docker.com/get-started)
-- [Docker Compose](https://docs.docker.com/compose/)
-- [Git](https://git-scm.com/)
-- Rede Docker `network-share` já criada:
+- MySQL com `utf8mb4` por padrao
+- IP fixo na rede Docker externa `network-share`
+- Inicializacao automatica via `mysql-init/`
+- Variaveis de ambiente centralizadas em `.env`
 
-## Criar a rede externa se ainda não existir
-
-```bash
-docker network create --driver bridge network-share --subnet=172.18.0.0/16
-```
-
-> **OBS:**  Ajuste a subnet conforme a necessidade do seu cenário.
-
-## Estrutura de arquivos
+## Estrutura do repositorio
 
 ```plaintext
-bskp/
-├── databases/               # Diretório principal do container MySQL
-└── ctr-mysql/               # Projeto MySQL
-     ├── docker-compose.yml  # Definição dos serviços Docker
-     ├── .env.example        # Exemplo de variáveis de ambiente
-     └── README.md           # Documentação do serviço
+.
+├── databases/           # Dados persistentes do MySQL (host)
+├── mysql-init/          # Scripts executados na primeira subida
+├── docker-compose.yml   # Servico MySQL
+├── .env.example         # Exemplo de configuracao
+└── README.md            # Este documento
 ```
 
-## 1. Arquivo **.env**
+## Requisitos
 
-Na pasta /bskp/ctr-glpi, crie uma cópia do arquivo `.env.example` e renomeie-a para `.env`:
+- Docker
+- Docker Compose
+- Rede Docker externa `network-share` criada
+
+## Configuracao
+
+### 1) Arquivo .env
+
+Crie o arquivo `.env` a partir do exemplo:
 
 ```bash
 cp .env.example .env
 ```
 
->**OBS:** Edite o arquivo `.env` para configurar as variáveis de ambiente conforme necessário.**
+Edite os valores conforme o seu ambiente. Principais variaveis:
 
-## 2. Subindo o serviço
+- `CONTAINER_NAME`, `RELEASE`
+- `IPV4_ADDRESS`, `SUBNET`
+- `PORTS_MYSQL`
+- `MYSQL_ROOT_PASSWORD`
+- `MYSQL_*_USER` e `MYSQL_*_PASSWORD` (GLPI, Zabbix, Grafana)
+- `BASE_DIR`, `VOL_DATABASES_PATH`, `VOL_MYSQL_INIT`
 
-Para iniciar o container em segundo plano:
+> Ajuste `BASE_DIR` para o caminho correto no host.
+
+### 2) Rede Docker externa
+
+Se a rede ainda nao existir:
 
 ```bash
-# Acessar pasta do container
-cd /bskp/ctr-mysql
+docker network create --driver bridge network-share --subnet=172.18.0.0/16
+```
 
-# Inciciar o container
+## Subindo o servico
+
+```bash
+# na raiz do repositorio
+
 docker compose up -d
 ```
 
-Verifique se o container está em execução:
+Verifique:
 
 ```bash
 docker ps | grep ctr-mysql
 ```
 
-Acompanhe os logs:
+Logs:
 
 ```bash
 docker logs -f ctr-mysql
 ```
 
-## 3. Restaurando uma base de dados
+## Inicializacao de bancos e usuarios
 
-### 3.1 Para o container
+Os scripts em `mysql-init/` são executados na primeira inicializacao do container e criam os bancos/usuarios configurados no `.env`.
+
+- `mysql-init/01-glpi.sh`
+- `mysql-init/02-zabbix.sh`
+- `mysql-init/03-grafana.sh`
+
+## Operacoes comuns
+
+Parar e subir novamente:
 
 ```bash
-# Acessar pasta do container
-cd /bskp/ctr-glpi
-
-# Parar o container
 docker compose stop
+
+docker compose up -d
 ```
 
-### 3.2 Copiando a base de dados para o servidor
-
-Copie a base de dados **.sql** para a pasta **/tmp** do servidor onde o container está hospedado.
-
-### 3.3 Copiando a base de dados para o container mysql
-
-No servidor docker:
-
-- Copiar o backup da base de dados para o container
-
-```bash
-docker cp /tmp/NOME_DO_BACKUP.sql ctr-mysql:/tmp/NOME_DO_BACKUP.sql
-```
-
-### 3.4  Restaurar o backup dentro do container
-
-Acesse o container
+Acessar o container:
 
 ```bash
 docker exec -it ctr-mysql bash
 ```
 
+## Backup e restore
+
+### Backup
+
 ```bash
-mysql -u root -p
+docker exec -i ctr-mysql mysqldump -uroot -p'SENHA_DO_ROOT' nome_da_base > /tmp/backup.sql
 ```
 
-Verifique se o banco de dados existe
+### Restore
+
+1) Copie o arquivo `.sql` para o host (ex.: `/tmp`).
+2) Envie o arquivo para o container:
 
 ```bash
-SHOW DATABASES;
+docker cp /tmp/backup.sql ctr-mysql:/tmp/backup.sql
 ```
 
-Se não existir, crie o banco de dados
+3) Restaure dentro do container:
 
 ```bash
-mysql -u root -p'SENHA_DO_ROOT'
+docker exec -it ctr-mysql bash
+mysql -uroot -p
 ```
 
 ```sql
-CREATE DATABASE IF NOT EXISTS nome_do_banco;
+CREATE DATABASE IF NOT EXISTS nome_da_base
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
 ```
-
-Restaure o backup
 
 ```bash
-mysql -u root -p'SENHA_DO_ROOT' nome_da_base_de_dados < /tmp/NOME_DO_BACKUP.sql
+mysql -uroot -p'SENHA_DO_ROOT' nome_da_base < /tmp/backup.sql
 ```
+
+## Troubleshooting
+
+- Erro de rede: confirme que `network-share` existe e que `SUBNET` e `IPV4_ADDRESS` nao conflitam.
+- Scripts nao executaram: scripts em `mysql-init/` rodam apenas na primeira inicializacao (volume vazio).
+- Permissao de volume: valide `BASE_DIR` e caminhos em `VOL_DATABASES_PATH`.
