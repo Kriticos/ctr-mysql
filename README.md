@@ -22,13 +22,12 @@ Ambiente padrao de MySQL 8.x com Docker Compose, configurado por variaveis de am
 
 ## Requisitos
 
-- Docker
-- Docker Compose
+- [Docker e Docker Compose](https://docs.docker.com/engine/install/)
 - Rede Docker externa `network-share` criada
 
 ## Configuracao
 
-### 1) Arquivo .env
+### 1. Arquivo .env
 
 Crie o arquivo `.env` a partir do exemplo:
 
@@ -45,9 +44,7 @@ Edite os valores conforme o seu ambiente. Principais variaveis:
 - `MYSQL_*_USER` e `MYSQL_*_PASSWORD` (GLPI, Zabbix, Grafana)
 - `BASE_DIR`, `VOL_DATABASES_PATH`, `VOL_MYSQL_INIT`
 
-> Ajuste `BASE_DIR` para o caminho correto no host.
-
-### 2) Rede Docker externa
+### 2. Rede Docker externa
 
 Se a rede ainda nao existir:
 
@@ -58,7 +55,7 @@ docker network create --driver bridge network-share --subnet=172.18.0.0/16
 ## Subindo o servico
 
 ```bash
-# na raiz do repositorio
+# Na pasta do container execute
 
 docker compose up -d
 ```
